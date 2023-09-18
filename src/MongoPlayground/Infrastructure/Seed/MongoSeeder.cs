@@ -1,6 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
-using MongoPlayground.Entities;
+using MongoPlayground.Documents;
+using DestinationId = MongoPlayground.Documents.DestinationId;
 
 namespace MongoPlayground.Infrastructure.Seed;
 
@@ -26,12 +27,12 @@ internal abstract class MongoSeeder : IMongoSeeder
 
 internal sealed class DestinationsSeeder : MongoSeeder
 {
-    private static readonly IReadOnlyCollection<(string Name, string Description)> Destinations = new[]
+    private static readonly IReadOnlyCollection<(string Name, string CountryName, string CountryCode)> Destinations = new[]
     {
-        ("Dubai", "Test description"),
-        ("Paris", "Test description"),
-        ("Hilton Warsaw", "Test description"),
-        ("Jumeirah Beach Hotel", "Test description"),
+        ("Dubai", "United Arab Emirates", "UAE"),
+        ("Paris", "France", "FR"),
+        ("Hilton Warsaw", "Poland", "PL"),
+        ("Jumeirah Beach Hotel", "United Arab Emirates", "UAE"),
     };
 
     public DestinationsSeeder(IMongoDatabase database) : base(database)
@@ -42,20 +43,29 @@ internal sealed class DestinationsSeeder : MongoSeeder
     {
         var collections = await Database.ListCollectionNamesAsync(new ListCollectionNamesOptions
         {
-            Filter = new BsonDocument("name", Destination.CollectionName)
+            Filter = new BsonDocument("name", DestinationDocument.CollectionName)
         }, cancellationToken);
         if (!await collections.AnyAsync(cancellationToken: cancellationToken))
         {
-            await Database.CreateCollectionAsync(Destination.CollectionName, cancellationToken: cancellationToken);
-            var collection = Database.GetCollection<Destination>(Destination.CollectionName);
-            var destinations = new List<Destination>();
+            await Database.CreateCollectionAsync(DestinationDocument.CollectionName, cancellationToken: cancellationToken);
+            var collection = Database.GetCollection<DestinationDocument>(DestinationDocument.CollectionName);
+            var destinations = new List<DestinationDocument>();
             foreach (var (destination, index) in Destinations.Select((summary, index) => (summary, index)))
             {
-                destinations.Add(new Destination
+                destinations.Add(new DestinationDocument
                 {
                     Id = DestinationId.New(),
                     Name = destination.Name,
-                    Description = destination.Description,
+                    CountryName = destination.CountryName,
+                    CountryCode = destination.CountryCode,
+                    Address= new DestinationAddress
+                    {
+                        Line1 = $"Line 1 {index}",
+                        Line2 = $"Line 2 {index}",
+                        Line3 = $"Line 3 {index}"
+                    },
+                    DestinationTypeCode = "H",
+                    CreatedDate = DateTime.UtcNow
                 });
             }
             await collection.InsertManyAsync(destinations, cancellationToken: cancellationToken);
@@ -63,5 +73,5 @@ internal sealed class DestinationsSeeder : MongoSeeder
     }
 
     public override Task Cleanup(CancellationToken cancellationToken) =>
-        Database.DropCollectionAsync(Destination.CollectionName, cancellationToken);
+        Database.DropCollectionAsync(DestinationDocument.CollectionName, cancellationToken);
 }

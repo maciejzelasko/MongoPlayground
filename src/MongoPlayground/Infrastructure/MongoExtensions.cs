@@ -21,21 +21,26 @@ internal static class MongoExtensions
 
         services.AddSingleton<IMongoClient>(provider =>
         {
-            var mongoSetting = provider.GetRequiredService<IOptions<MongoOptions>>().Value;
-            return new MongoClient(mongoSetting.ConnectionString);
+            var mongoSettings = provider.GetRequiredService<IOptions<MongoOptions>>().Value;
+            return new MongoClient(mongoSettings.ConnectionString);
         });
-        services.AddSingleton<IMongoDatabase>(provider =>
+        services.AddSingleton(provider =>
         {
-            var mongoSetting = provider.GetRequiredService<IOptions<MongoOptions>>().Value;
+            var mongoSettings = provider.GetRequiredService<IOptions<MongoOptions>>().Value;
             var client = provider.GetRequiredService<IMongoClient>();
-            return client.GetDatabase(mongoSetting.Database);
+            return client.GetDatabase(mongoSettings.Database);
         });
+
+        return services;
+    }
+
+    public static IServiceCollection AddMongoSeeder(this IServiceCollection services)
+    {
         services.Scan(scan =>
             scan.FromAssemblyOf<MongoDataSeeder>()
                 .AddClasses(c => c.AssignableTo<IMongoSeeder>())
                 .AsImplementedInterfaces());
         services.AddHostedService<MongoDataSeeder>();
-
         return services;
     }
 }

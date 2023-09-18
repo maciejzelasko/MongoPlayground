@@ -1,4 +1,5 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver.GeoJsonObjectModel;
 
 namespace MongoPlayground.Documents;
 
@@ -18,7 +19,8 @@ public class DestinationDocument
 
     public required DestinationAddress Address { get; init; }
 
-    public Coordinates? Coordinates { get; init; }
+    [BsonElement("GeoCode")]
+    public GeoJsonObject<GeoJson2DGeographicCoordinates>? GeoCode { get; init; }
 
     public required string DestinationTypeCode { get; init; }
 

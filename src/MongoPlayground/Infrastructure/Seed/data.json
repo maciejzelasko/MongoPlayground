@@ -1,0 +1,20 @@
+{
+  "Destinations": [
+    {
+      "Name": "Hilton Dubai",
+      "CountryName": "United Arab Emirates",
+      "CountryCode": "AE"
+    },
+    {
+      "Name": "Jumeirah Beach Hotel",
+      "CountryName": "United Arab Emirates",
+      "CountryCode": "AE"
+    },
+    {
+      "Name": "Hilton Warsaw",
+      "CountryName": "Poland",
+      "CountryCode": "PL"
+
+    }
+  ]
+}

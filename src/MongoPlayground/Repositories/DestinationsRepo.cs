@@ -16,6 +16,8 @@ interface IDestinationsRepo
         string userId,
         IReadOnlyCollection<string> destinationTypes,
         CancellationToken cancellationToken);
+
+    Task TruncateDestinationsAsync(CancellationToken cancellationToken);
 }
 
 internal sealed class DestinationsRepo : IDestinationsRepo
@@ -124,13 +126,19 @@ internal sealed class DestinationsRepo : IDestinationsRepo
         return final;
     }
 
-    private record UserEventRecord(string Id, double Boost);
+    public Task TruncateDestinationsAsync(CancellationToken cancellationToken)
+    {
+        var collection = _database.GetCollection<DestinationDocument>(DestinationDocument.CollectionName);
+        return collection.DeleteManyAsync(Builders<DestinationDocument>.Filter.Empty, cancellationToken);
+    }
+
+    private record UserEventRecord(DestinationId Id, double Boost);
 }
 
 [BsonIgnoreExtraElements]
 public class SearchEventDocument
 {
-    public string DestinationId { get; init; }
+    public DestinationId DestinationId { get; init; }
     public string? UserId { get; init; }
     public string? CompanyId { get; init; }
     public DateTime CreatedDate { get; init; }
